@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mensaje Especial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #000;
+            color: white;
+            text-align: center;
+            overflow-x: hidden;
+            height: 100vh;
+            touch-action: manipulation;
+        }
+        section {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+        }
+        .active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        video, img {
+            max-width: 100%;
+            max-height: 60vh;
+            object-fit: contain;
+            margin-bottom: 20px;
+        }
+        .button-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 90%;
+            max-width: 350px;
+        }
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid white;
+            color: white;
+            padding: 15px 0;
+            margin: 0;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 25px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        button:active {
+            background: white;
+            color: black;
+        }
+        .hidden {
+            display: none;
+        }
+        #audio-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(0,0,0,0.7);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: none;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio para la música (oculto, en loop) -->
+    <audio id="background-music" loop>
+        <source src="Nodejesque.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- Control de audio flotante -->
+    <button id="audio-control" onclick="toggleMusic()">🔊</button>
+
+    <!-- Sección 1 - Video inicial (sin música) -->
+    <section id="section1" class="active">
+        <video id="video1" controls playsinline>
+            <source src="Nuevo video hanni.mp4" type="video/mp4">
+        </video>
+        <div class="button-container">
+            <button id="btnContinue">Continuar</button>
+        </div>
+    </section>
+
+    <!-- Sección 2 - Video con música que continúa -->
+    <section id="section2">
+        <video id="video2" controls playsinline>
+            <source src="Introduccion.mp4" type="video/mp4">
+        </video>
+        <div class="button-container">
+            <button id="btnOpenLetter">Abrir carta</button>
+        </div>
+    </section>
+
+    <!-- Sección 3 - Carta con 4 botones -->
+    <section id="section3">
+        <img src="Carta.png" alt="Carta">
+        <div class="button-container">
+            <button data-response="novio">Si eres mi novio (y quiero salir contigo al cine)</button>
+            <button data-response="enamorado">Si eres mi enamorado (y quiero otra cita contigo)</button>
+            <button data-response="amigo">Si eres mi amigo</button>
+            <button data-response="ex">Eres mi Ex</button>
+        </div>
+    </section>
+
+    <!-- Sección 4 - Respuesta positiva -->
+    <section id="section4">
+        <video controls playsinline>
+            <source src="Respuesta positiva.mp4" type="video/mp4">
+        </video>
+    </section>
+
+    <!-- Sección 5 - Respuesta negativa -->
+    <section id="section5">
+        <img src="Respuesta negativa.png" alt="Respuesta negativa">
+    </section>
+
+    <!-- Formulario para Formspree -->
+    <form id="responseForm" class="hidden" action="https://formspree.io/f/mldbdjpn" method="POST">
+        <input type="hidden" name="response" id="formResponse">
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const backgroundMusic = document.getElementById('background-music');
+            const audioControl = document.getElementById('audio-control');
+            const btnContinue = document.getElementById('btnContinue');
+            const btnOpenLetter = document.getElementById('btnOpenLetter');
+            let musicPlaying = false;
+
+            // 1. Primera sección - Solo video (sin música)
+            btnContinue.addEventListener('click', function() {
+                document.getElementById('section1').classList.remove('active');
+                document.getElementById('section2').classList.add('active');
+                
+                // Iniciar música en la página 2 y que continúe
+                backgroundMusic.volume = 0.5;
+                backgroundMusic.play()
+                    .then(() => {
+                        musicPlaying = true;
+                        audioControl.textContent = '🔊';
+                    })
+                    .catch(e => {
+                        console.log("Error al iniciar música:", e);
+                        // Mostrar botón de play si falla el autoplay
+                        audioControl.style.display = 'flex';
+                    });
+                
+                // Reproducir video de la sección 2
+                document.getElementById('video2').play().catch(e => console.log("Error video:", e));
+            });
+
+            // 2. Segunda sección - Música continúa
+            btnOpenLetter.addEventListener('click', function() {
+                document.getElementById('section2').classList.remove('active');
+                document.getElementById('section3').classList.add('active');
+                // La música sigue reproduciéndose
+            });
+
+            // 3. Manejo de respuestas (4 BOTONES)
+            document.querySelectorAll('#section3 button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const response = this.getAttribute('data-response');
+                    document.getElementById('formResponse').value = response;
+                    document.getElementById('responseForm').submit();
+                    
+                    document.getElementById('section3').classList.remove('active');
+                    if (response === "novio" || response === "enamorado") {
+                        document.getElementById('section4').classList.add('active');
+                    } else {
+                        document.getElementById('section5').classList.add('active');
+                        // Opcional: Detener música en respuesta negativa
+                        // backgroundMusic.pause();
+                    }
+                });
+            });
+
+            // Control de música flotante
+            function toggleMusic() {
+                if (musicPlaying) {
+                    backgroundMusic.pause();
+                    musicPlaying = false;
+                    audioControl.textContent = '🔇';
+                } else {
+                    backgroundMusic.play();
+                    musicPlaying = true;
+                    audioControl.textContent = '🔊';
+                }
+            }
+
+            // Precarga de archivos
+            ["Carta.png", "Respuesta positiva.mp4", "Respuesta negativa.png"].forEach(src => {
+                new Image().src = src;
+            });
+
+            // Ocultar control de audio al inicio
+            audioControl.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
