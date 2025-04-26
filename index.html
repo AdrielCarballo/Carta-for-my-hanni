@@ -82,6 +82,12 @@
             border: none;
             color: white;
         }
+        .btn-finalizar {
+            background: rgba(255, 165, 0, 0.3);
+            border-color: orange;
+            margin-top: 30px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -124,16 +130,22 @@
         </div>
     </section>
 
-    <!-- Sección 4 - Respuesta positiva -->
+    <!-- Sección 4 - Respuesta positiva con botón Finalizar -->
     <section id="section4">
         <video controls playsinline>
             <source src="Respuesta positiva.mp4" type="video/mp4">
         </video>
+        <div class="button-container">
+            <button class="btn-finalizar" id="btnFinalizarPositivo">Finalizar</button>
+        </div>
     </section>
 
-    <!-- Sección 5 - Respuesta negativa -->
+    <!-- Sección 5 - Respuesta negativa con botón Finalizar -->
     <section id="section5">
         <img src="Respuesta negativa.png" alt="Respuesta negativa">
+        <div class="button-container">
+            <button class="btn-finalizar" id="btnFinalizarNegativo">Finalizar</button>
+        </div>
     </section>
 
     <!-- Formulario para Formspree -->
@@ -147,6 +159,12 @@
             const audioControl = document.getElementById('audio-control');
             const btnContinue = document.getElementById('btnContinue');
             const btnOpenLetter = document.getElementById('btnOpenLetter');
+            const btnFinalizarPositivo = document.getElementById('btnFinalizarPositivo');
+            const btnFinalizarNegativo = document.getElementById('btnFinalizarNegativo');
+            const formResponse = document.getElementById('formResponse');
+            const responseForm = document.getElementById('responseForm');
+            
+            let selectedResponse = '';
             let musicPlaying = false;
 
             // 1. Primera sección - Solo video (sin música)
@@ -163,11 +181,9 @@
                     })
                     .catch(e => {
                         console.log("Error al iniciar música:", e);
-                        // Mostrar botón de play si falla el autoplay
                         audioControl.style.display = 'flex';
                     });
                 
-                // Reproducir video de la sección 2
                 document.getElementById('video2').play().catch(e => console.log("Error video:", e));
             });
 
@@ -175,25 +191,36 @@
             btnOpenLetter.addEventListener('click', function() {
                 document.getElementById('section2').classList.remove('active');
                 document.getElementById('section3').classList.add('active');
-                // La música sigue reproduciéndose
             });
 
-            // 3. Manejo de respuestas (4 BOTONES)
+            // 3. Manejo de selección de respuesta (sin enviar aún)
             document.querySelectorAll('#section3 button').forEach(button => {
                 button.addEventListener('click', function() {
-                    const response = this.getAttribute('data-response');
-                    document.getElementById('formResponse').value = response;
-                    document.getElementById('responseForm').submit();
+                    selectedResponse = this.getAttribute('data-response');
                     
                     document.getElementById('section3').classList.remove('active');
-                    if (response === "novio" || response === "enamorado") {
+                    if (selectedResponse === "novio" || selectedResponse === "enamorado") {
                         document.getElementById('section4').classList.add('active');
                     } else {
                         document.getElementById('section5').classList.add('active');
-                        // Opcional: Detener música en respuesta negativa
-                        // backgroundMusic.pause();
                     }
                 });
+            });
+
+            // Botón Finalizar para respuesta positiva
+            btnFinalizarPositivo.addEventListener('click', function() {
+                formResponse.value = selectedResponse;
+                responseForm.submit();
+                backgroundMusic.pause();
+                alert("¡Gracias por tu respuesta especial! El mensaje se ha enviado.");
+            });
+
+            // Botón Finalizar para respuesta negativa
+            btnFinalizarNegativo.addEventListener('click', function() {
+                formResponse.value = selectedResponse;
+                responseForm.submit();
+                backgroundMusic.pause();
+                alert("Gracias por tu honestidad. El mensaje se ha enviado.");
             });
 
             // Control de música flotante
